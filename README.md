@@ -7,6 +7,7 @@ A simple, interactive Python CLI tool to capture screenshots from Android device
 - **Interactive mode**: Type screen names as you capture for organized screenshots
 - **Auto-naming**: Press ENTER for automatic timestamped filenames
 - **Device detection**: Automatically checks ADB connection and device status
+- **Display resolution info**: Shows both physical and logical (dp) resolutions - helpful for design QA work
 - **Clean output**: Screenshots saved locally with descriptive filenames
 - **Single-shot mode**: Capture one screenshot and exit (great for scripts)
 - **No dependencies**: Uses only Python standard library + ADB
@@ -66,20 +67,26 @@ python android-screen-grabber.py
 You'll see a prompt where you can:
 - **Type a screen name** (e.g., `login`, `dashboard`) and press ENTER to capture with that name
 - **Press ENTER** without typing for auto-numbered screenshots
+- **Type `i`** and press ENTER to display device and resolution info
 - **Type `q`** and press ENTER to quit
 
 **Example session:**
 ```
-Enter screen name (or ENTER for auto, q=quit): login
+Enter screen name (or ENTER for auto, i=info, q=quit): login
 📸 Capturing screenshot... ✅ Saved: screenshots/login_20231210_143022.png
 
-Enter screen name (or ENTER for auto, q=quit): dashboard_main
+Enter screen name (or ENTER for auto, i=info, q=quit): i
+📱 Device: Pixel 7 (Android 13)
+📐 Resolution: 1080x2400px (physical) | 412x915dp (logical)
+   Density: 420 DPI
+
+Enter screen name (or ENTER for auto, i=info, q=quit): dashboard_main
 📸 Capturing screenshot... ✅ Saved: screenshots/dashboard_main_20231210_143035.png
 
-Enter screen name (or ENTER for auto, q=quit):
+Enter screen name (or ENTER for auto, i=info, q=quit):
 📸 Capturing screenshot... ✅ Saved: screenshots/screenshot_001_20231210_143040.png
 
-Enter screen name (or ENTER for auto, q=quit): q
+Enter screen name (or ENTER for auto, i=info, q=quit): q
 ✅ Done! Captured 3 screenshots
 ```
 
@@ -126,6 +133,31 @@ Screenshots are saved as PNG files with the following naming convention:
   - Example: `screenshot_001_20231210_143022.png`
 
 All screenshots include a timestamp in `YYYYMMDD_HHMMSS` format.
+
+## Resolution Info for Design QA
+
+The tool displays both physical and logical resolutions when you start the tool or press `i`:
+
+```
+📱 Device: Pixel 7 (Android 13)
+📐 Resolution: 1080x2400px (physical) | 412x915dp (logical)
+   Density: 420 DPI
+```
+
+**Why is this useful for designers?**
+
+When doing UI/UX QA work and importing screenshots into design tools like Figma:
+
+- **Physical resolution** (1080x2400px): The actual pixel dimensions of the screenshot PNG file captured from the device
+- **Logical resolution** (412x915dp): The density-independent pixel size that designers work with in design tools
+
+**Design workflow tip:**
+1. Take screenshots using this tool (captured at physical resolution, e.g., 1080x2400px)
+2. Import into Figma
+3. Resize the screenshot to the **logical resolution** (e.g., 412x915) to match your design artboards
+4. Now you can overlay screenshots with designs for pixel-perfect QA comparisons
+
+This ensures your screenshots are scaled correctly to match design specifications, making side-by-side comparisons accurate regardless of the device's screen density.
 
 ## Troubleshooting
 

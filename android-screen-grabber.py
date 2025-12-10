@@ -57,7 +57,59 @@ class AndroidScreenshotTool:
             return model.stdout.strip(), version.stdout.strip()
         except:
             return "Unknown", "Unknown"
-    
+
+    def get_display_info(self):
+        """Get display resolution info - both physical and logical (dp)"""
+        try:
+            # Get physical resolution
+            size_result = subprocess.run(['adb', 'shell', 'wm', 'size'],
+                                       capture_output=True, text=True, check=True)
+            size_line = size_result.stdout.strip()
+            # Parse "Physical size: 1080x2400"
+            if 'Physical size:' in size_line:
+                resolution = size_line.split('Physical size:')[1].strip()
+                width, height = map(int, resolution.split('x'))
+            else:
+                return None
+
+            # Get density
+            density_result = subprocess.run(['adb', 'shell', 'wm', 'density'],
+                                          capture_output=True, text=True, check=True)
+            density_line = density_result.stdout.strip()
+            # Parse "Physical density: 420"
+            if 'Physical density:' in density_line:
+                density = int(density_line.split('Physical density:')[1].strip())
+            else:
+                return None
+
+            # Calculate logical resolution (dp)
+            # Formula: physical_pixels / (density / 160) = dp
+            dp_width = int(width / (density / 160))
+            dp_height = int(height / (density / 160))
+
+            return {
+                'physical': (width, height),
+                'logical': (dp_width, dp_height),
+                'density': density
+            }
+        except:
+            return None
+
+    def display_device_info(self):
+        """Display device and screen information (reusable for startup and 'i' command)"""
+        model, version = self.get_device_info()
+        print(f"📱 Device: {model} (Android {version})")
+
+        display_info = self.get_display_info()
+        if display_info:
+            physical = display_info['physical']
+            logical = display_info['logical']
+            density = display_info['density']
+            print(f"📐 Resolution: {physical[0]}x{physical[1]}px (physical) | {logical[0]}x{logical[1]}dp (logical)")
+            print(f"   Density: {density} DPI")
+        else:
+            print("📐 Resolution: Unable to detect")
+
     def capture_screenshot(self, screen_name=None):
         """Capture a screenshot from the connected device"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -105,26 +157,28 @@ class AndroidScreenshotTool:
             return
         
         # Show device info
-        model, version = self.get_device_info()
-        print(f"📱 Device: {model} (Android {version})")
+        self.display_device_info()
         print(f"💾 Saving to: {self.output_dir.absolute()}\n")
         
         print("Instructions:")
         print("  • Navigate your app on the phone normally")
         print("  • Type a screen name (e.g., 'login', 'dashboard') and press ENTER to capture")
         print("  • Or just press ENTER without typing for auto-naming")
+        print("  • Type 'i' then ENTER to show device info")
         print("  • Type 'q' then ENTER to quit")
         print("\n" + "="*60)
         print("Ready! Start capturing screenshots...\n")
         
         try:
             while True:
-                user_input = input("Enter screen name (or ENTER for auto, q=quit): ").strip()
+                user_input = input("Enter screen name (or ENTER for auto, i=info, q=quit): ").strip()
 
                 if user_input.lower() == 'q':
                     print(f"\n✅ Done! Captured {self.screenshot_count} screenshots")
                     print(f"📁 Location: {self.output_dir.absolute()}")
                     break
+                elif user_input.lower() == 'i':
+                    self.display_device_info()
                 elif user_input == '':
                     # Empty input = auto-naming
                     self.capture_screenshot()
