@@ -7,6 +7,7 @@ Connects to an Android device via ADB and captures screenshots on keypress
 import subprocess
 import os
 import sys
+import math
 from datetime import datetime
 from pathlib import Path
 
@@ -84,8 +85,9 @@ class AndroidScreenshotTool:
 
             # Calculate logical resolution (dp)
             # Formula: physical_pixels / (density / 160) = dp
-            dp_width = int(width / (density / 160))
-            dp_height = int(height / (density / 160))
+            # Use ceil() to match Android's viewport calculation
+            dp_width = math.ceil(width / (density / 160))
+            dp_height = math.ceil(height / (density / 160))
 
             return {
                 'physical': (width, height),
